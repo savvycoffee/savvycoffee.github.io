@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://savvycoffee.github.io/address-autocomplete.txt" type="text/javascript"></script>
 <script>
     var Webflow = Webflow || [];
     const queryString = window.location.search;
@@ -5,8 +8,7 @@
     const signup_code = urlParams.get('code');
     document.getElementById('signup_id').value = signup_code;
     const data = { code: signup_code };
-    const stripe = Stripe('pk_test_51ICBebFwoWi4Q2eCQwDObt9H50f5JmDwdS8o3RxIMLFfhR8Exa6VNkW9BpZAUMSkHNhso2l91XU3yTlQFmnI8N2n00DHQF4mcC'); 
-
+    const stripe = Stripe('pk_test_51ICBebFwoWi4Q2eCQwDObt9H50f5JmDwdS8o3RxIMLFfhR8Exa6VNkW9BpZAUMSkHNhso2l91XU3yTlQFmnI8N2n00DHQF4mcC');
     const userPhone = localStorage.getItem("userP");
     document.getElementById('phone_number').value = userPhone;
     let url = new URL("https://x8ki-letl-twmt.n7.xano.io/api:rHIcyEeu/customer-checkout-session");
@@ -59,7 +61,7 @@
                 const paymentElement = elements.create('payment');
                 paymentElement.mount('#payment-element');               
                 document.getElementById('customer').value = customerId;
-         
+
                 Webflow.push(function() {
                     $(document).off('submit');
                     $('#drops-form').submit(function(e) {
@@ -117,9 +119,6 @@
             })
         })
     };
-
-    
-    
     createElements();
     function formatPhone(obj) {
     var numbers = obj.value.replace(/\D/g, ''),
@@ -129,7 +128,6 @@
         obj.value += (char[i]||'') + numbers[i];
     }
 }
-
 $('#phone_number').keypress(function() {
   formatPhone(this);
 });
