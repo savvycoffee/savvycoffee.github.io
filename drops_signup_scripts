@@ -1,0 +1,133 @@
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://savvycoffee.github.io/address-autocomplete.txt" type="text/javascript"></script>
+<script>
+    var Webflow = Webflow || [];
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const signup_code = urlParams.get('code');
+    document.getElementById('signup_id').value = signup_code;
+    const data = { code: signup_code };
+    const stripe = Stripe('pk_test_51ICBebFwoWi4Q2eCQwDObt9H50f5JmDwdS8o3RxIMLFfhR8Exa6VNkW9BpZAUMSkHNhso2l91XU3yTlQFmnI8N2n00DHQF4mcC');
+    const userPhone = localStorage.getItem("userP");
+    document.getElementById('phone_number').value = userPhone;
+    let url = new URL("https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/customer-checkout-session");
+    
+        axios.post(url, {
+          code: signup_code
+        })
+        .then(response => {
+          const secret = response.data.clientSecret;
+            const customerId = response.data.customerId;
+            const options = {clientSecret: secret,
+            // Fully customizable with appearance API.
+                appearance: {
+                    theme: 'none',
+                    variables: {
+                        colorBackground: '#ffffff',
+                        colorText: '#000000',
+                        fontFamily: 'Cabinetgrotesk, system-ui, sans-serif',
+                        borderRadius: '8px',
+                        },
+                    rules: {
+                        '.Input': {
+                            border: '3px solid #000000',
+                            fontFamily: 'Cabinetgrotesk, system-ui, sans-serif'
+                        },
+                        '.Tab': {
+                            border: '3px solid #000000',
+                        },
+                        '.Tab--selected': {
+                            border: '3px solid #ffe837',
+                        },
+                        '.Label': {
+                            fontFamily: 'Cabinetgrotesk, system-ui, sans-serif'
+                        }
+                    }
+                },
+            };
+            const elements = stripe.elements(options);
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');               
+            document.getElementById('customer').value = customerId;
+
+            Webflow.push(function() {
+              $(document).off('submit');
+              $('#drops-form').submit(function(e) {
+                  e.preventDefault();
+
+                  const $form = $(this);
+                  const $submit = $('[type=submit', $form);
+                  const buttonText = $submit.val();
+                  const buttonWaitingText = $submit.attr('data-wait');
+                  const formMethod = $form.attr('method');
+                  const formAction = $form.attr('action'); 
+                  const formRedirect = $form.attr('data-redirect'); 
+                  const formData = $form.serialize(); 
+
+                  if (buttonWaitingText) {
+                      $submit.val(buttonWaitingText)
+                  }
+                  
+                  axios.post(formAction, formData)
+                    .then(response => {
+                      stripe.confirmSetup({
+                        elements,
+                        confirmParams: {
+                            // Return URL where the customer should be redirected after the SetupIntent is confirmed.
+                            return_url: 'https://savvydrops.webflow.io/success',
+                        },
+                      })
+                    })
+                    .catch(error => {
+                      if (error.response) {
+                        console.log(error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                      } else if (error.request) {
+                          console.log(error.request);
+                      } else {
+                          console.log('Error', error.message);
+                      }
+                      document.getElementById('error_message').innerText = error.response.data.message;
+                    })
+                    .then(function () {
+                      $submit.val(buttonText);
+                    });
+              });
+            });
+        })
+        .catch(error => {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+              console.log(error.request);
+          } else {
+              console.log('Error', error.message);
+          }
+          document.getElementById('error_message').innerText = error.response.data.message;
+        })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+
+    createElements();
+    function formatPhone(obj) {
+    var numbers = obj.value.replace(/\D/g, ''),
+        char = {0:'(',3:') ',6:'-'};
+    obj.value = '';
+    for (var i = 0; i < numbers.length; i++) {
+        obj.value += (char[i]||'') + numbers[i];
+    }
+  }
+$('#phone_number').keypress(function() {
+  formatPhone(this);
+});
+</script>
