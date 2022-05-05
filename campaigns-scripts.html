@@ -1,26 +1,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@2.3.2/build/global/luxon.min.js"></script>
 
 <script>
+    const DateTime = luxon.DateTime;
     async function getSegments() {
         let url = new URL('https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/segments')
-        const response = await fetch(url, {
-            method: 'GET',
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.log(response.status);
-            }
-            response.json().then(function(data) {
-                data.forEach((segment) => {
-                    $('#segment')
-                        .append($('<option>', {
-                            value: segment.id,
-                            text : segment.name
-                        }));
+
+        axios.get(url)
+            .then(function (response) {
+                let segments = response.data
+                    segments.forEach((segment) => {
+                        $('#segment')
+                            .append($('<option>', {
+                                value: segment.id,
+                                text : segment.name
+                            }));
+                    })
                 })
-            })
-        });
     };
     getSegments();
     
@@ -36,7 +33,6 @@
     function formatNumber(n) {
       return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
-    
     
     function formatCurrency(input, blur) {
         var input_val = input.val();
@@ -68,6 +64,13 @@
         input[0].setSelectionRange(caret_pos, caret_pos);
     }
 
+    function addHours(date, hours) {
+        $('#drop_end').val(DateTime.now());
+        let endDate = DateTime.fromISO(date).plus({ hours: hours }).toISO();
+        $('#drop_end').val(endDate);
+        return endDate;
+    }
+
     const fp = flatpickr("#drop_start", {
             dateFormat: 'Z',
             altInput: true,
@@ -76,15 +79,26 @@
             allowInput: true,
             enableTime: true,
             minuteIncrement: 1,
-            time_24hr: true
-          });
+            onChange: function(selectedDates, dateStr, instance) {
+                let dur = $('#duration').val();
+                addHours(dateStr, dur);
+            }
+        });
+
+    $('#duration').on('change', function() {
+        let startDate = DateTime.now();
+        if (fp.selectedDates.length > 0) {
+            startDate = DateTime.fromJSDate(fp.selectedDates[0]).toISO();
+        }   
+        addHours(startDate, $(this).val())
+        });
     
     var Webflow = Webflow || [];
     Webflow.push(function() {
         $(document).off('submit');
         $('#new-drop-form').submit(function(e) {
             e.preventDefault();
-    
+
             const $form = $(this);
             const $submit = $('[type=submit', $form);
             const buttonText = $submit.val();
@@ -106,17 +120,24 @@
                 })
                 .then(function (response) {
                     $form
-                        .siblings('.w-form-done').show() // Show success
-                        .siblings('.w-form-fail').hide() // Hide failure
-                        .siblings('#disclaimer').hide(); 
-                    console.log(response);
+                        .siblings('.w-form-done').show()
+                        .siblings('.w-form-fail').hide()
                 })
                 .catch(function (error) {
-                    document.getElementById('error_message').innerText = error;
+                    if (error.response) {
+                        console.log(error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                    } else if (error.request) {
+                        console.log(error.request);
+                    } else {
+                     console.log('Error', error.message);
+                    }
+                    document.getElementById('error_message').innerText = error.response.data.message;
 
                     $form
-                        .siblings('.w-form-done').hide() // Hide success
-                        .siblings('.w-form-fail').show(); // show failure
+                    .siblings('.w-form-done').hide()
+                    .siblings('.w-form-fail').show();
                 })
                 .then(function () {
                     $submit.val(buttonText);

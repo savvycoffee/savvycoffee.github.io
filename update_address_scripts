@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://savvycoffee.github.io/address-autocomplete.js"></script>
+
+<script>
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const code = urlParams.get('code');
+
+axios.get('https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/customer-id?code=' + code)
+    .then(response => {
+        document.getElementById('signup_id').value = code;
+        document.getElementById('customer_id').value = response.data.customer_id;
+        document.getElementById('address_1').value = response.data.address_1;
+        document.getElementById('address_2').value = response.data.address_2;
+        document.getElementById('city').value = response.data.city;
+        document.getElementById('state').value = response.data.state;
+        document.getElementById('zip_code').value = response.data.zip_code;
+    })
+    .catch(error => {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+        } else if (error.request) {
+            console.log(error.request);
+        } else {
+            console.log('Error', error.message);
+        }
+    })
+
+var Webflow = Webflow || [];
+Webflow.push(function() {
+    $(document).off('submit');
+    $('#update-address-form').submit(function(e) {
+        e.preventDefault();
+
+        const $form = $(this);
+        const $submit = $('[type=submit', $form);
+        const buttonText = $submit.val();
+        const buttonWaitingText = $submit.attr('data-wait');
+        const formMethod = $form.attr('method');
+        const formAction = $form.attr('action'); 
+        const formRedirect = $form.attr('data-redirect'); 
+        const formData = $form.serialize(); 
+
+        if (buttonWaitingText) {
+            $submit.val(buttonWaitingText)
+        }
+        
+        axios.post(formAction, formData)
+            .then(response => {
+                $form
+                    .siblings('.w-form-done').show()
+                    .siblings('.w-form-fail').hide()
+                    .hide(this);
+            })
+            .catch(error => {
+            if (error.response) {
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+            } else if (error.request) {
+                console.log(error.request);
+            } else {
+                console.log('Error', error.message);
+            }
+            $submit.val(buttonText);
+            document.getElementById('error_message').innerText = error.response.data.message;
+            });
+        });
+})
+</script>
