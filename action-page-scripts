@@ -1,0 +1,138 @@
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, verifyPasswordResetCode, confirmPasswordReset, checkActionCode, applyActionCode } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyDRY9i6jciPJX6sisTt-na869tILD3NbkM",
+    authDomain: "savvy-drops.firebaseapp.com",
+    projectId: "savvy-drops",
+    storageBucket: "savvy-drops.appspot.com",
+    messagingSenderId: "410499852250",
+    appId: "1:410499852250:web:786f4c1db00673a2d242e3",
+    measurementId: "G-RKB7K5B6VM"
+    };
+  
+    // Initialize Firebase and declare "global" variables. all variables declared in this section are accessible to functions that follow.
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+   
+    
+
+    document.addEventListener('DOMContentLoaded', () => {
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+    
+        // Get the action to complete.
+        const mode = getParameterByName('mode');
+        // Get the one-time code from the query parameter.
+        const actionCode = getParameterByName('oobCode');
+        // (Optional) Get the continue URL from the query parameter if available.
+        const continueUrl = getParameterByName('continueUrl');
+
+        // Handle the user management action.
+        switch (mode) {
+            case 'resetPassword':
+                $('#newPasswordAction').removeClass('hidden');
+                handleResetPassword(auth, actionCode, continueUrl, lang);
+            break;
+            case 'recoverEmail':
+            // Display email recovery handler and UI.
+            handleRecoverEmail(auth, actionCode, lang);
+            break;
+            case 'verifyEmail':
+            // Display email verification handler and UI.
+            handleVerifyEmail(auth, actionCode, continueUrl, lang);
+            break;
+            default:
+            // Error: invalid mode.
+        }
+    }, false);
+
+    function handleResetPassword(auth, actionCode, continueUrl, lang) {
+        // Verify the password reset code is valid.
+        verifyPasswordResetCode(auth, actionCode).then((email) => {
+            const accountEmail = email;
+
+            // TODO: Show the reset screen with the user's email and ask the user for
+            // the new password.
+            
+            const newPasswordForm = document.getElementById('new_password_form');
+
+            newPasswordForm.addEventListener('submit', handleNewPassword, true);
+
+            function handleNewPassword(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Save the new password.
+                const newPassword = document.getElementById('new_password').value;
+                confirmPasswordReset(auth, actionCode, newPassword).then((resp) => {
+                // Password reset has been confirmed and new password updated.
+                    $('#pw_success').show();
+                    $('#password_reset_form').hide();
+                    signInWithEmailAndPassword(auth, accountEmail, newPassword)
+                        .then((userCredential) => {
+                        // Signed in 
+                        const user = userCredential.user;
+                        window.location.replace('/admin/dashboard')
+                        })
+                        .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        var errorText = document.getElementById('signin-error-message');
+                        console.log(errorMessage);
+                        document.getElementById('error_message').innerText = errorMessage;
+                        $('#error_message').show();
+                        });
+                    }).catch((error) => {
+                    // Error occurred during confirmation. The code might have expired or the
+                    // password is too weak.
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    var errorText = document.getElementById('signup-error-message');
+                    console.log(errorMessage);
+                    document.getElementById('pw_error_message').innerText = errorMessage;
+                    $('#pw_error_message').show();
+                });
+            }      
+        }).catch((error) => {
+            $('#pw_code_error').removeClass('hidden');
+            $('#newPasswordAction').hide();
+            console.log(error.message)
+        });
+    }
+
+    function handleRecoverEmail(auth, actionCode, lang) {
+        let restoredEmail = null;
+        // Confirm the action code is valid.
+        checkActionCode(auth, actionCode).then((info) => {
+            // Get the restored email address.
+            restoredEmail = info['data']['email'];
+            // Revert to the old email.
+            return applyActionCode(auth, actionCode);
+        }).then(() => {
+            // Account email reverted to restoredEmail
+            $('#recoverEmailAction').removeClass('hidden');
+        }).catch((error) => {
+            $('#pw_code_error').removeClass('hidden');
+            console.log(error.message)
+        });
+    }
+    function handleVerifyEmail(auth, actionCode, continueUrl, lang) {
+        // Try to apply the email verification code.
+        applyActionCode(auth, actionCode).then((resp) => {
+            // Email address has been verified.
+            $('#verifyEmailAction').removeClass('hidden');
+        }).catch((error) => {
+            $('#pw_code_error').removeClass('hidden');
+            console.log(error.message)
+        });
+    }
+   
+  </script>

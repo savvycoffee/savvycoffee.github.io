@@ -1,0 +1,144 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@2.3.2/build/global/luxon.min.js"></script>
+
+<script>
+    var Webflow = Webflow || [];
+    Webflow.push(function() {
+        $(document).off('submit');
+        $('#create-roaster-form').submit(function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submit = $('[type=submit', $form);
+            const buttonText = $submit.val();
+            const buttonWaitingText = $submit.attr('data-wait');
+            const formMethod = $form.attr('method');
+            const formAction = $form.attr('action'); 
+            const formRedirect = $form.attr('data-redirect'); 
+            const formData = $form.serialize(); 
+    
+            if (buttonWaitingText) {
+                $submit.val(buttonWaitingText)
+            }
+
+            axios
+                .post(formAction, formData, {
+                    headers: {
+                        Accept: 'application/json',
+                    }
+                })
+                .then(function (response) {
+                    $form
+                        .siblings('.w-form-done').show()
+                        .siblings('.w-form-fail').hide()
+                })
+                .catch(function (error) {
+                    if (error.response) {
+                        console.log(error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                    } else if (error.request) {
+                        console.log(error.request);
+                    } else {
+                     console.log('Error', error.message);
+                    }
+                    document.getElementById('error_message').innerText = error.response.data.message;
+
+                    $form
+                    .siblings('.w-form-done').hide()
+                    .siblings('.w-form-fail').show();
+                })
+                .then(function () {
+                    $submit.val(buttonText);
+                })
+        });
+    });
+    </script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyDRY9i6jciPJX6sisTt-na869tILD3NbkM",
+    authDomain: "savvy-drops.firebaseapp.com",
+    projectId: "savvy-drops",
+    storageBucket: "savvy-drops.appspot.com",
+    messagingSenderId: "410499852250",
+    appId: "1:410499852250:web:786f4c1db00673a2d242e3",
+    measurementId: "G-RKB7K5B6VM"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+  
+    let signOutButton = document.getElementById('signout-button');     
+      if(typeof signOutButton !== null) {
+        signOutButton.addEventListener('click', handleSignOut);
+           } else {}
+    
+    function handleSignOut() {
+        signOut(auth).then(() => {
+        console.log('user signed out')
+        // Sign-out successful.
+    })
+    .catch((error) => {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+        // An error happened.
+    });
+    
+  }
+  
+    let privatePages = [
+        '/admin/dashboard',
+        '/admin/campaigns',
+        '/admin/create-roaster'
+    ];
+
+    let publicPages = [
+        '/',
+        '/admin/signup',
+        '/success',
+        '/admin/login'
+    ];
+  
+    onAuthStateChanged(auth, (user) => {
+        let currentPath = window.location.pathname;
+  	    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+        let privateElements = document.querySelectorAll("[data-onlogin='show']");
+  
+        if (user) {
+        // User is signed in, see docs for a list of available properties			
+        
+            const uid = user.uid;
+            if (publicPages.includes(currentPath)) { 
+                        window.location.replace('/admin/dashboard');
+            }
+            privateElements.forEach(function(element) {
+            element.style.display = "initial";
+            });
+            
+            publicElements.forEach(function(element) {
+            element.style.display = "none";
+            });
+            
+            console.log(`The current user's UID is equal to ${uid}`);
+            // ...
+        } else {
+        // User is signed out
+            if (privatePages.includes(currentPath)) {
+                window.location.replace('/');
+            } 
+            publicElements.forEach(function(element) {
+            element.style.display = "initial";
+            });
+            
+            privateElements.forEach(function(element) {
+            element.style.display = "none";
+            });
+            // ...
+        }
+  });
+  </script>

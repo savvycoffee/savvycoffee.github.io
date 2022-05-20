@@ -1,0 +1,48 @@
+    let privatePages = [
+      '/admin/dashboard',
+      '/admin/campaigns',
+      '/admin/create-roaster'
+    ];
+  
+    let publicPages = [
+      '/',
+      '/admin/signup',
+      '/admin/login'
+    ];
+  
+    onAuthStateChanged(auth, (user) => {
+      let currentPath = window.location.pathname;
+      let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+      let privateElements = document.querySelectorAll("[data-onlogin='show']");
+  
+      if (user) {
+      // User is signed in, see docs for a list of available properties			
+      
+          const uid = user.uid;
+          if (publicPages.includes(currentPath)) { 
+              window.location.replace('/admin/dashboard');
+          }
+          privateElements.forEach(function(element) {
+          element.style.display = "initial";
+          });
+          
+          publicElements.forEach(function(element) {
+          element.style.display = "none";
+          });
+          
+          console.log(`The current user's UID is equal to ${uid}`);
+          // ...
+      } else {
+      // User is signed out
+        if (privatePages.includes(currentPath)) {
+          window.location.replace('/');
+        } 
+        publicElements.forEach(function(element) {
+          element.style.display = "initial";
+        });
+        
+        privateElements.forEach(function(element) {
+          element.style.display = "none";
+        });
+      }
+    });

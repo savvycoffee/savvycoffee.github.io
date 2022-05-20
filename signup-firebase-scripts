@@ -1,0 +1,119 @@
+<script>
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString)
+  const signupCode = urlParams.get('code');
+  const signupForm = document.getElementById('signup_wrapper');
+
+  axios.post('https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/verify_vendor', {
+      signup_code: signupCode
+    })
+    .then(response => {
+      document.getElementById('signup-email').value(response.data.contact_email)
+      $(signupForm).removeClass('hidden');
+    })
+    .catch(error => {
+      signupForm.remove();
+      $('#error_wrapper').removeClass('hidden');
+    })
+</script>
+
+<script id="firebase-script" type="module">
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRY9i6jciPJX6sisTt-na869tILD3NbkM",
+    authDomain: "savvy-drops.firebaseapp.com",
+    projectId: "savvy-drops",
+    storageBucket: "savvy-drops.appspot.com",
+    messagingSenderId: "410499852250",
+    appId: "1:410499852250:web:786f4c1db00673a2d242e3",
+    measurementId: "G-RKB7K5B6VM"
+  };
+    
+  // Initialize Firebase and declare "global" variables. all variables declared in this section are accessible to functions that follow.
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+    
+  //identify auth action forms
+  let signUpForm = document.getElementById('wf-form-signup-form');
+    
+  //assign event listeners, if the elements exist
+  if(typeof(signUpForm) !== null) {
+    signUpForm.addEventListener('submit', handleSignUp, true)
+    } else {  };
+  
+  //handle signUp
+  function handleSignUp(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    
+    createUserWithEmailAndPassword(auth, email, password)
+    .then(function () {
+      window.location.replace('/admin/dashboard');
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      var errorText = document.getElementById('signup-error-message');
+      console.log(errorMessage);
+      document.getElementById('error_message').innerText = errorMessage;
+      $('#error_message').show();
+    });
+
+  };
+
+  let privatePages = [
+      '/admin/dashboard',
+      '/admin/campaigns',
+      '/admin/create-roaster'
+    ];
+  
+    let publicPages = [
+      '/',
+      '/admin/signup',
+      '/admin/login'
+    ];
+  
+    onAuthStateChanged(auth, (user) => {
+      let currentPath = window.location.pathname;
+      let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+      let privateElements = document.querySelectorAll("[data-onlogin='show']");
+  
+      if (user) {
+      // User is signed in, see docs for a list of available properties			
+      
+          const uid = user.uid;
+          if (publicPages.includes(currentPath)) { 
+              window.location.replace('/admin/dashboard');
+          }
+          privateElements.forEach(function(element) {
+          element.style.display = "initial";
+          });
+          
+          publicElements.forEach(function(element) {
+          element.style.display = "none";
+          });
+          
+          console.log(`The current user's UID is equal to ${uid}`);
+          // ...
+      } else {
+      // User is signed out
+        if (privatePages.includes(currentPath)) {
+          window.location.replace('/');
+        } 
+        publicElements.forEach(function(element) {
+          element.style.display = "initial";
+        });
+        
+        privateElements.forEach(function(element) {
+          element.style.display = "none";
+        });
+      }
+    });
+
+</script>
