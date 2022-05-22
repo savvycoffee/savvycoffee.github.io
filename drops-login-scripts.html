@@ -1,0 +1,58 @@
+<script>
+    var Webflow = Webflow || [];
+    Webflow.push(function() {
+        $(document).off('submit');
+        $('#signup-form').submit(function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submit = $('[type=submit', $form);
+            const buttonText = $submit.val();
+            const buttonWaitingText = $submit.attr('data-wait');
+            const formMethod = $form.attr('method');
+            const formAction = $form.attr('action'); 
+            const formRedirect = $form.attr('data-redirect'); 
+            const formData = $form.serialize(); 
+    
+            if (buttonWaitingText) {
+                $submit.val(buttonWaitingText)
+            }
+
+            axios
+                .post(formAction, formData, {
+                    headers: {
+                        Accept: 'application/json',
+                    }
+                })
+                .then(function (response) {
+                    localStorage.setItem('client:token', response.data.authToken)
+
+                    $form
+                        .hide()
+                        .siblings('.w-form-done').show()
+                        .siblings('.w-form-fail').hide()
+                    window.location.replace('/dashboard')
+                })
+                .catch(function (error) {
+                    if (error.response) {
+                        console.log(error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                    } else if (error.request) {
+                        console.log(error.request);
+                    } else {
+                     console.log('Error', error.message);
+                    }
+                    document.getElementById('error_message').innerText = error.response.data.message;
+
+                    $form
+                    .siblings('.w-form-done').hide()
+                    .siblings('.w-form-fail').show();
+                })
+                .then(function () {
+                    $submit.val(buttonText);
+                })
+        });
+    });
+  </script>
+  
