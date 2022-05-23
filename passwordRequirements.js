@@ -1,102 +1,90 @@
-(function($){
-    $.fn.extend({
-        passwordRequirements: function(options) {
+(function(){
+	var password = document.querySelector('.password');
 
-            // options for the plugin
-            var defaults = {
-				numCharacters: 8,
-				useLowercase: true,
-				useUppercase: true,
-				useNumbers: true,
-				useSpecial: true,
-				infoMessage: '',
-				style: "light", // Style Options light or dark
-				fadeTime:300 // FadeIn / FadeOut in milliseconds
-            };
+	var helperText = {
+		charLength: document.querySelector('#numCharacters'),
+		lowercase: document.querySelector('#useLowercase'),
+		uppercase: document.querySelector('#useUppercase'),
+		special: document.querySelector('#useNumbers')
+	};
 
-            options =  $.extend(defaults, options);
+	var pattern = {
+		charLength: function() {
+			if( password.value.length >= 8 ) {
+				return true;
+			}
+		},
+		lowercase: function() {
+			var regex = /^(?=.*[a-z]).+$/;
 
-            return this.each(function() {
-				
-				var o = options;
-								
-				// Set completion vatiables
-				var numCharactersDone = true,
-					useLowercaseDone = true,
-					useUppercaseDone = true,
-					useNumbersDone   = true,
-					useSpecialDone   = true;
-				
-				// Set variables
-				var lowerCase   		= new RegExp('[a-z]'),
-					upperCase   		= new RegExp('[A-Z]'),
-					numbers     		= new RegExp('[0-9]'),
-					specialCharacter     = new RegExp('[!,%,&,@,#,$,^,*,?,_,~]');
-				
-				// Show or Hide password hint based on keyup
-				$('.pr-password').on("keyup focus", function (){
-					var thisVal = $(this).val();  
-					
-					// Check # of characters
-					if ( thisVal.length >= o.numCharacters ) {
-						// console.log("good numCharacters");
-						$("#numCharacters").addClass("pr-ok");
-						numCharactersDone = true;
-					} else {
-						// console.log("bad numCharacters");
-						$("#numCharacters").removeClass("pr-ok");
-						numCharactersDone = false;
-					}
-					// lowerCase meet requirements
-					if (o.useLowercase === true) {
-						if ( thisVal.match(lowerCase) ) {
-							// console.log("good lowerCase");
-							$("#useLowercase").addClass("pr-ok");
-							useLowercaseDone = true;
-						} else {
-							// console.log("bad lowerCase");
-							$("#useLowercase").removeClass("pr-ok");
-							useLowercaseDone = false;
-						}
-					}
-					// upperCase meet requirements
-					if (o.useUppercase === true) {
-						if ( thisVal.match(upperCase) ) {
-							// console.log("good upperCase");
-							$("#useUppercase").addClass("pr-ok");
-							useUppercaseDone = true;
-						} else {
-							// console.log("bad upperCase");
-							$("#useUppercase").removeClass("pr-ok");
-							useUppercaseDone = false;
-						}
-					}
-					// upperCase meet requirements
-					if (o.useNumbers === true) {
-						if ( thisVal.match(numbers) ) {
-							// console.log("good numbers");
-							$("#useNumbers").addClass("pr-ok");
-							useNumbersDone = true;
-						} else {
-							// console.log("bad numbers");
-							$("#useNumbers").removeClass("pr-ok");
-							useNumbersDone = false;
-						}
-					}
-					// upperCase meet requirements
-					if (o.useSpecial === true) {
-						if ( thisVal.match(specialCharacter) ) {
-							// console.log("good specialCharacter");
-							$(".pr-useSpecial span").addClass("pr-ok");
-							useSpecialDone = true;
-						} else {
-							// console.log("bad specialCharacter");
-							$(".pr-useSpecial span").removeClass("pr-ok");
-							useSpecialDone = false;
-						}
-					}
-				});
-            });
-        }
-    });
-});
+			if( regex.test(password.value) ) {
+				return true;
+			}
+		},
+		uppercase: function() {
+			var regex = /^(?=.*[A-Z]).+$/;
+
+			if( regex.test(password.value) ) {
+				return true;
+			}
+		},
+		special: function() {
+			var regex = /^(?=.*[0-9_\W]).+$/;
+
+			if( regex.test(password.value) ) {
+				return true;
+			}
+		}   
+	};
+
+	password.addEventListener('keyup', function (){
+		patternTest( pattern.charLength(), helperText.charLength );
+		patternTest( pattern.lowercase(), helperText.lowercase );
+		patternTest( pattern.uppercase(), helperText.uppercase );
+		patternTest( pattern.special(), helperText.special );
+
+		if( hasClass(helperText.charLength, 'valid') && 
+			hasClass(helperText.lowercase, 'valid') && 
+			hasClass(helperText.uppercase, 'valid') && 
+			hasClass(helperText.special, 'valid')
+		) {
+			addClass(password.parentElement, 'valid');
+		}
+		else {
+			removeClass(password.parentElement, 'valid');
+		}
+	});
+
+	function patternTest(pattern, response) {
+		if(pattern) {
+			addClass(response, 'pr-ok');
+		} else {
+			removeClass(response, 'pr-ok');
+		}
+	}
+
+	function addClass(el, className) {
+		if (el.classList) {
+			el.classList.add(className);
+		} else {
+			el.className += ' ' + className;
+		}
+	}
+
+	function removeClass(el, className) {
+		if (el.classList) {
+			el.classList.remove(className);
+		} else {
+			el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+		}
+	}
+
+	function hasClass(el, className) {
+		if (el.classList) {
+			console.log(el.classList);
+			return el.classList.contains(className);    
+		} else {
+			new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className); 
+		}
+	}
+})(); 
