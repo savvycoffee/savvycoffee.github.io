@@ -34,7 +34,7 @@
 					specialCharacter     = new RegExp('[!,%,&,@,#,$,^,*,?,_,~]');
 				
 				// Show or Hide password hint based on keyup
-				$('#password').on("keyup focus", function (){
+				$('.pr-password').on("keyup focus", function (){
 					var thisVal = $(this).val();  
 					
 					// Check # of characters
