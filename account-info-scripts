@@ -1,0 +1,13 @@
+<script>
+    $('#save').attr('disabled')
+    $('.input-field-dashboard').keyup(function() {
+        $('#save').removeAttr('disabled');
+    });
+    auth().then(data => {
+        const user = data;
+        $('#email').val(user.email);
+        $('#first_name').val(user.first_name);
+        $('#last_name').val(user.last_name);
+        $('phone_number').val(user.phone_number)
+    }) 
+</script>

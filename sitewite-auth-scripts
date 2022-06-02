@@ -1,4 +1,19 @@
 <script>
+    const signOutButton = document.getElementById('signout-button');
+    if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut);
+    } else {};
+
+    function handleSignOut() {
+        localStorage.removeItem('client:token')    
+        console.log('User signed out')
+        authState();
+    }
+  
+    const authToken = localStorage.getItem('client:token');
+    let currentPath = window.location.pathname;
+    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+    let privateElements = document.querySelectorAll("[data-onlogin='show']");
     let privatePages = [
         '/dashboard',
         '/dashboard/campaigns',
@@ -10,20 +25,17 @@
         '/roasters/signup',
         '/dashboard/login'
     ];
-  
-    const authToken = localStorage.getItem('client:token');
-    let currentPath = window.location.pathname;
-    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
-    let privateElements = document.querySelectorAll("[data-onlogin='show']");
+
+
     axios.get('https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/auth/me', {
         headers: {
-            Authorization: 'Bearer ' + authToken
+            Authorization: `Bearer ${authToken}`
         }
     })
     .then(response => {
         const user = response.data;
         if (publicPages.includes(currentPath)) { 
-            window.location.replace('/admin/dashboard');
+            window.location.replace('/dashboard');
             }
             privateElements.forEach(function(element) {
             element.style.display = "initial";
