@@ -1,0 +1,176 @@
+<script>
+    auth().then(data => {
+        document.getElementById('email').value = data.user.email;
+        document.getElementById('first_name').value = data.user.first_name;
+        document.getElementById('last_name').value = data.user.last_name;
+        document.getElementById('phone_number').value = data.user.phone_number;
+        document.getElementById('user_id').value = data.user.id;
+        document.getElementById('user_id_2').value = data.user.id;
+    }) 
+
+    var Webflow = Webflow || [];
+    Webflow.push(function() {
+        $(document).off('submit');
+        $('form').submit(function(e) {
+            e.preventDefault();
+
+            const userID = document.getElementById('user_id').value;
+            const $form = $(this);
+            const $submit = $('[type=submit', $form);
+            const buttonText = $submit.val();
+            const buttonWaitingText = $submit.attr('data-wait');
+            const formAction = `https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/user/${userID}`; 
+            const formRedirect = $form.attr('data-redirect'); 
+            const formData = $form.serialize(); 
+            const config = {
+                headers:{
+                    Authorization: `Bearer ${authToken}`
+                }
+            }
+    
+            if (buttonWaitingText) {
+                $submit.val(buttonWaitingText)
+            }
+
+            axios
+                .post(formAction, formData, config)
+                .then(function (response) {
+                    if(response.data == 'Password updated') {
+                        $('.modal_wrapper').hide();
+                        new Notify({
+                            status: 'success',
+                            title: 'Success',
+                            text: 'Your password has been updated',
+                            effect: 'fade',
+                            speed: 300,
+                            customClass: null,
+                            customIcon: null,
+                            showIcon: true,
+                            showCloseButton: true,
+                            autoclose: true,
+                            autotimeout: 3000,
+                            gap: 20,
+                            distance: 20,
+                            type: 1,
+                            position: 'x-center top'
+                        })
+                        $('#update-password')[0].reset();
+                    } else {
+                        $form
+                            .siblings('.w-form-done').show() // Show success
+                        	.siblings('.w-form-fail').hide(); // Hide failure
+                    }      
+                })
+                .catch(function (error) {
+                    if (error.response) {
+                        console.log(error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                    } else if (error.request) {
+                        console.log(error.request);
+                    } else {
+                     console.log('Error', error.message);
+                    }
+                    $form
+                    .siblings('.w-form-fail').text(error.response.data.message)
+                    .siblings('.w-form-done').hide()
+                    .siblings('.w-form-fail').show();
+                })
+                .then(function () {
+                    $submit.val(buttonText);
+                })
+        });
+    });
+
+    (function(){
+        var password = document.querySelector('#password');
+
+        var helperText = {
+            charLength: document.querySelector('#numCharacters'),
+            lowercase: document.querySelector('#useLowercase'),
+            uppercase: document.querySelector('#useUppercase'),
+            special: document.querySelector('#useNumbers')
+        };
+
+        var pattern = {
+            charLength: function() {
+                if( password.value.length >= 8 ) {
+                    return true;
+                }
+            },
+            lowercase: function() {
+                var regex = /^(?=.*[a-z]).+$/;
+
+                if( regex.test(password.value) ) {
+                    return true;
+                }
+            },
+            uppercase: function() {
+                var regex = /^(?=.*[A-Z]).+$/;
+
+                if( regex.test(password.value) ) {
+                    return true;
+                }
+            },
+            special: function() {
+                var regex = /^(?=.*[0-9_\W]).+$/;
+
+                if( regex.test(password.value) ) {
+                    return true;
+                }
+            }   
+        };
+
+        password.addEventListener('keyup', function (){
+            $('.pr-wrapper').removeClass('hidden')
+            patternTest( pattern.charLength(), helperText.charLength );
+            patternTest( pattern.lowercase(), helperText.lowercase );
+            patternTest( pattern.uppercase(), helperText.uppercase );
+            patternTest( pattern.special(), helperText.special );
+
+            if( hasClass(helperText.charLength, 'valid') && 
+                hasClass(helperText.lowercase, 'valid') && 
+                hasClass(helperText.uppercase, 'valid') && 
+                hasClass(helperText.special, 'valid')
+            ) {
+                $('#password').addClass('valid');
+            }
+            else {
+                $('#password').removeClass('valid');
+            }
+        });
+
+        function patternTest(pattern, response) {
+            if(pattern) {
+                addClass(response, 'pr-ok');
+            } else {
+                removeClass(response, 'pr-ok');
+            }
+        }
+
+        function addClass(el, className) {
+            if (el.classList) {
+                el.classList.add(className);
+            } else {
+                el.className += ' ' + className;
+            }
+        }
+
+        function removeClass(el, className) {
+            if (el.classList) {
+                el.classList.remove(className);
+            } else {
+                el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+            }
+        }
+
+        function hasClass(el, className) {
+            if (el.classList) {
+                console.log(el.classList);
+                return el.classList.contains(className);    
+            } else {
+                new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className); 
+            }
+        }
+    })();
+</script>

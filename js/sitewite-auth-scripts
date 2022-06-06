@@ -1,0 +1,83 @@
+<script>
+    const signOutButton = document.getElementById('signout-button');
+    if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut);
+    } else {};
+
+    function handleSignOut() {
+        localStorage.removeItem('client:token')    
+        console.log('User signed out')
+        window.location.replace('/')
+    }
+  
+    const authToken = localStorage.getItem('client:token');
+    let currentPath = window.location.pathname;
+    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+    let privateElements = document.querySelectorAll("[data-onlogin='show']");
+    let adminElements = document.querySelectorAll("[data-admin='show']");
+    let vendorElements = document.querySelectorAll("[data-vendor='show']");
+    let privatePages = [
+        '/dashboard',
+        '/dashboard/campaigns',
+        '/dashboard/create-roaster',
+        '/dashboard/account-info',
+        '/dashboard/new-password',
+        '/dashboard/payout'
+    ];
+  
+    let publicPages = [
+        '/',
+        '/roasters/signup',
+        '/dashboard/login'
+    ];
+
+    function auth() {
+        return axios.get('https://x2u8-93qt-fakz.n7.xano.io/api:rHIcyEeu/auth/me', {
+            headers: {
+                Authorization: `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            this.response = response.data
+            return this.response
+        })
+        .catch(error => {
+            
+        })
+    }
+    
+    auth().then(data => {
+        const user = data;
+        if(user) {
+            if (user.role != 'Admin') {
+                adminElements.forEach(function(element) {
+                    element.remove();
+                })
+            } 
+            if (user.role != 'Vendor' || 'Admin') {
+                vendorElements.forEach(function(element) {
+                    element.remove();
+                })
+            }
+            if (publicPages.includes(currentPath)) { 
+                window.location.replace('/dashboard');
+                }
+            privateElements.forEach(function(element) {
+                element.style.display = "initial";
+            });      
+            publicElements.forEach(function(element) {
+                element.style.display = "none";
+            });
+        } else {
+            if (privatePages.includes(currentPath)) {
+                window.location.replace('/access-denied');
+            } 
+            publicElements.forEach(function(element) {
+                element.style.display = "initial";
+            });
+            privateElements.forEach(function(element) {
+                element.style.display = "none";
+            });
+        }    
+    })
+</script>
